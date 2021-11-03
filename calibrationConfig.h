@@ -1,0 +1,12 @@
+#ifndef CALIBRATION_CONFIG
+#define CALIBRATION_CONFIG
+
+#define _LIGHT_PORT_ 5
+#define _MIN_LIGHT_VALUE 920
+#define _MAX_LIGHT_VALUE 300
+
+#define _HUMIDITY_PORT_ 4
+#define _MIN_HUMIDITY_VALUE 880
+#define _MAX_HUMIDITY_VALUE 200
+
+#endif
