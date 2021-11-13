@@ -17,6 +17,7 @@ ESPDash dashboard(&server);
 
 //  ============================
 
+Card currentLightDisplay(&dashboard, PROGRESS_CARD, "Light duration for today", "%", 0, 100);
 Card lightDisplay(&dashboard, GENERIC_CARD, "Light", "%");
 Card humidityDisplay(&dashboard, HUMIDITY_CARD, "Humidity", "%");
 Card pumpSystemButton(&dashboard, BUTTON_CARD, "Activate pump system");
@@ -66,9 +67,15 @@ uint16_t ReadHumidity() {
 void countLightDuration() {
   if (isLightTurnedOn == true) {
     currentLightDuration += _CHECK_REFRESH_RATE_;
+    currentLightDisplay.update(calcCurrentLightDurationPercentage());
   } else if (lightLevel > minimumNaturalLightLevel) {
     currentLightDuration += _CHECK_REFRESH_RATE_;
+    currentLightDisplay.update(calcCurrentLightDurationPercentage());
   }
+}
+
+float calcCurrentLightDurationPercentage() {
+  return ((float(currentLightDuration) / (wantedLightDuration * 3600000)) * 100);
 }
 
 void setLightState(bool newState) {
@@ -139,7 +146,7 @@ void setup() {
 
   pumpSystemButton.attachCallback([&](bool value){
     pumpSystemActive = value;
-    Serial.println("pumpSystemButton: "+ String((pumpSystemActive)?"true":"false"));
+    Serial.println("pumpSystemButton: "+ String((pumpSystemActive)? "true" : "false"));
     pumpSystemButton.update(pumpSystemActive);
     dashboard.sendUpdates();
   });
@@ -152,7 +159,8 @@ void setup() {
   });
 
   wantedHumidityLevelSlider.update(wantedHumidityLevel);
-
+  currentLightDisplay.update(calcCurrentLightDurationPercentage());
+  
   timer.every(_CHECK_REFRESH_RATE_, check);
 }
 
