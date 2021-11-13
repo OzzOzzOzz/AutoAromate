@@ -17,11 +17,12 @@ ESPDash dashboard(&server);
 
 //  ============================
 
-Card currentLightDisplay(&dashboard, PROGRESS_CARD, "Light duration for today", "%", 0, 100);
+Card currentLightDisplay(&dashboard, PROGRESS_CARD, "Light for today", "%", 0, 100);
 Card lightDisplay(&dashboard, GENERIC_CARD, "Light", "%");
 Card humidityDisplay(&dashboard, HUMIDITY_CARD, "Humidity", "%");
 Card pumpSystemButton(&dashboard, BUTTON_CARD, "Activate pump system");
 Card wantedHumidityLevelSlider(&dashboard, SLIDER_CARD, "Wanted humidity", "%", 20, 80);
+Card wantedLightDurationSlider(&dashboard, SLIDER_CARD, "Wanted light", "h", 1, 16);
 
 //  ============================
 
@@ -105,12 +106,20 @@ void handleLightSystem() {
   }
 }
 
+void turnOnWatering() {
+  digitalWrite(_PUMP_PORT_, HIGH);
+}
+
+bool turnOffWatering(void *) {
+  digitalWrite(_PUMP_PORT_, LOW);
+  return (false);
+}
+
 void handlePumpSystem() {
   if (pumpSystemActive == true) {
     if (humidityLevel < wantedHumidityLevel) {
-      digitalWrite(_PUMP_PORT_, HIGH);
-      delay(pumpWateringDuration);
-      digitalWrite(_PUMP_PORT_, LOW);
+      turnOnWatering();
+      timer.in(pumpWateringDuration, turnOffWatering);
     }
   }
 }
@@ -158,6 +167,14 @@ void setup() {
     dashboard.sendUpdates();
   });
 
+  wantedLightDurationSlider.attachCallback([&](int value) {
+    wantedLightDuration = value;
+    Serial.println("[wantedLightDurationSlider]: "+ String(wantedLightDuration));
+    wantedLightDurationSlider.update(wantedLightDuration);
+    dashboard.sendUpdates();
+  });
+
+  wantedLightDurationSlider.update(wantedLightDuration);
   wantedHumidityLevelSlider.update(wantedHumidityLevel);
   currentLightDisplay.update(calcCurrentLightDurationPercentage());
   
